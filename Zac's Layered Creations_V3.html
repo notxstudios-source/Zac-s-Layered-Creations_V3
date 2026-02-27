@@ -42,11 +42,11 @@
             color: var(--primary);
             font-size: 28px;
             letter-spacing: 1px;
-            transition: all 0.3s ease;
         }
         nav {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
         nav button {
             background: transparent;
@@ -117,11 +117,44 @@
         .green-btn:hover { transform: scale(1.05); }
         .delete-btn { background: var(--error); color: #fff; }
         .edit-btn { background: var(--warning); color: #000; }
-        .detail-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            align-items: center;
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #555;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background: var(--success);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
         .final-price {
             font-size: 42px;
@@ -176,67 +209,11 @@
             border-radius: 999px;
             font-size: 13px;
         }
-        .material-item {
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            background: #1a1a1a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .material-item:hover {
-            background: #252525;
-            transform: translateX(8px);
-        }
-        .gradient-bar {
-            height: 28px;
-            border-radius: 8px;
-            margin: 12px 0;
-            border: 2px solid var(--border);
-            box-shadow: 0 4px 12px rgba(255,255,255,0.1);
-        }
-        #materialLegend {
-            display: flex;
-            gap: 26px;
-            overflow-x: auto;
-            padding: 32px 20px;
-            scroll-behavior: smooth;
-            background: #1a1a1a;
-            border-radius: 24px;
-            margin-top: 32px;
-            box-shadow: inset 0 8px 32px rgba(0,0,0,0.7);
-        }
-        .legend-card {
-            min-width: 290px;
-            background: #222;
-            border-radius: 26px;
-            padding: 28px 22px;
-            text-align: center;
-            transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid var(--border);
-            box-shadow: 0 16px 45px rgba(0,0,0,0.8);
-        }
-        .legend-card:hover {
-            transform: scale(1.18) translateY(-14px);
-            box-shadow: 0 40px 80px rgba(255,255,255,0.22);
-        }
-        .legend-card .gradient-bar {
-            height: 128px;
-            width: 100%;
-            margin-bottom: 24px;
-            border-radius: 22px;
-            box-shadow: 0 14px 48px rgba(0,0,0,0.9);
-        }
-        .legend-card strong {
-            font-size: 23px;
-            display: block;
-            margin-bottom: 12px;
-        }
-        .legend-card small {
-            font-size: 17px;
-            opacity: 0.95;
+        .section-title {
+            font-size: 20px;
+            margin: 30px 0 15px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 8px;
         }
         .modal {
             display: none;
@@ -268,15 +245,6 @@
             z-index: 4000;
             display: none;
         }
-        .editing-banner {
-            background: #222;
-            padding: 12px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: var(--warning);
-            font-weight: 600;
-        }
         footer {
             text-align: center;
             padding: 30px 20px;
@@ -287,8 +255,6 @@
             .container { padding: 12px; }
             nav button { padding: 9px 14px; font-size: 14px; }
             .grid { grid-template-columns: 1fr; }
-            #materialLegend { gap: 20px; padding: 24px 14px; }
-            .legend-card { min-width: 240px; }
         }
     </style>
 </head>
@@ -298,6 +264,7 @@
         <nav>
             <button data-tab="home" class="active" onclick="showTab('home')">Dashboard</button>
             <button data-tab="create" onclick="showTab('create')">Create Job</button>
+            <button data-tab="jobs" onclick="showTab('jobs')">My Jobs</button>
             <button data-tab="settings" onclick="showTab('settings')">Settings</button>
         </nav>
     </header>
@@ -322,20 +289,12 @@
                 </div>
                 <div class="card"><h3><i class="fas fa-chart-line"></i>Revenue Over Time</h3><canvas id="revenueChart"></canvas></div>
             </div>
-            <div class="card">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <h3><i class="fas fa-list"></i>Saved Jobs</h3>
-                    <button class="btn" style="background:#333;color:#fff;padding:8px 18px;font-size:14px;" onclick="exportCSV()">Export CSV</button>
-                </div>
-                <input id="jobSearch" placeholder="Search jobs..." oninput="filterJobs()" style="margin-bottom:12px;">
-                <div id="jobList"></div>
-            </div>
         </div>
 
         <!-- CREATE JOB -->
         <div id="createTab" class="tab-content hidden">
             <div class="card">
-                <div id="editingBanner" class="editing-banner" style="display:none;"></div>
+                <div id="editingBanner" class="editing-banner" style="display:none;background:#222;padding:12px;border-radius:12px;text-align:center;color:var(--warning);"></div>
                 <h2 style="text-align:center;margin-bottom:20px;"><i class="fas fa-plus"></i>New Print Job</h2>
                 <div id="createJobForm">
                     <div class="form-row"><label>Job Name</label><input id="printName" placeholder="e.g. Custom Dragon" required></div>
@@ -366,22 +325,41 @@
                         <div id="detailsContainer"></div>
                     </div>
 
-                    <div id="priceBreakdown" class="price-breakdown" style="display:none;"></div>
+                    <div style="margin-top:20px;">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="roundPriceToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span style="margin-left:10px;vertical-align:middle;">Round up to nearest dollar</span>
+                    </div>
+
                     <button class="btn" style="background:#444;color:#fff;width:100%;margin-top:20px;" onclick="calculatePrice()">Calculate Price</button>
                     <button id="saveBtn" class="btn green-btn" onclick="createJob()" style="margin-top:10px;width:100%;">Save Job</button>
                     <h3 style="margin-top:25px;text-align:center;">Estimated Price</h3>
                     <h1 id="finalPrice" class="final-price">$0.00</h1>
+                    <div id="priceBreakdown" class="price-breakdown" style="display:none;"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- MY JOBS TAB -->
+        <div id="jobsTab" class="tab-content hidden">
+            <div style="margin-bottom:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button class="btn" id="filterAll" onclick="filterJobsTab('all')" style="background:var(--primary);color:#000;">All Jobs</button>
+                <button class="btn" id="filterPending" onclick="filterJobsTab('pending')">Pending</button>
+                <button class="btn" id="filterCompleted" onclick="filterJobsTab('completed')">Completed</button>
+            </div>
+            <div id="pendingJobs"></div>
+            <div id="completedJobs"></div>
         </div>
 
         <!-- SETTINGS TAB -->
         <div id="settingsTab" class="tab-content hidden">
             <div class="card">
                 <h2><i class="fas fa-edit"></i>Filament Editor</h2>
+                <!-- Filament editor code unchanged for brevity -->
                 <div class="form-row"><label>Name</label><input id="materialName" placeholder="e.g. PLA White" required></div>
                 <div class="form-row"><label>Cost per Gram</label><input id="materialCost" type="number" placeholder="Cost per Gram" step="0.01" min="0.01" required></div>
-                
                 <div class="form-row">
                     <label>Type</label>
                     <select id="gradientSelect" onchange="toggleGradientMode()">
@@ -389,18 +367,15 @@
                         <option value="custom">Custom Gradient</option>
                     </select>
                 </div>
-
                 <div id="solidSection">
                     <div class="form-row"><label>Color</label><input type="color" id="solidColor" value="#eeeeee"></div>
                 </div>
-
                 <div id="customSection" style="display:none;">
                     <h4 style="margin:15px 0 8px;">Gradient Stops</h4>
                     <div id="colorStops"></div>
                     <button class="btn" style="background:#333;color:#fff;width:100%;margin-top:10px;" onclick="addColorStop()">+ Add Color Stop</button>
                     <div id="gradientPreview" class="gradient-bar" style="margin-top:15px;"></div>
                 </div>
-
                 <button class="btn green-btn" onclick="addMaterial()" style="width:100%;margin-top:20px;">Add Filament</button>
                 <h3 style="margin-top:30px;">Saved Filaments</h3>
                 <div id="materialList"></div>
@@ -429,7 +404,7 @@
         </div>
     </div>
 
-    <!-- EDIT MODAL -->
+    <!-- EDIT MODAL (filament) -->
     <div id="editMaterialModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('editMaterialModal')" style="float:right;font-size:28px;cursor:pointer;">×</span>
@@ -447,6 +422,7 @@
         let jobs = [], materials = [], revenueChart, materialChart, editingJobIndex = -1, editingMaterialIndex = -1;
         let storageAvailable = true;
         let appTitle = "3D Print Manager Pro";
+        let currentJobFilter = 'all';
 
         try {
             if (window.localStorage) {
@@ -756,7 +732,6 @@
             }
         }
 
-        // CUSTOM DETAILS
         function addDetailRow(key = "", value = "") {
             const container = document.getElementById("detailsContainer");
             const id = "detail-" + Date.now();
@@ -802,7 +777,10 @@
             const matCost = mat ? grams * mat.cost : 0;
             const printerTimeCost = duration * printerCost;
             const subtotal = matCost + printerTimeCost;
-            const final = subtotal * profit;
+            let final = subtotal * profit;
+
+            const roundUp = document.getElementById("roundPriceToggle").checked;
+            if (roundUp) final = Math.ceil(final);
 
             const priceEl = document.getElementById("finalPrice");
             const breakdownEl = document.getElementById("priceBreakdown");
@@ -814,6 +792,7 @@
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Printer Time</span><span>$${printerTimeCost.toFixed(2)}</span></div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Profit (${profit}x)</span><span>$${(final - subtotal).toFixed(2)}</span></div>
+                ${roundUp ? `<div style="display:flex;justify-content:space-between;margin-bottom:6px;color:var(--success);"><span>Rounded Up</span><span>$${final.toFixed(2)}</span></div>` : ''}
                 <hr style="margin:10px 0;border-color:#444;">
                 <div style="display:flex;justify-content:space-between;font-weight:700;"><span>Total</span><span>$${final.toFixed(2)}</span></div>
             `;
@@ -854,15 +833,20 @@
             resetCreateForm();
             renderJobs();
             updateAnalytics();
-            showTab("home");
+            showTab("jobs");
             showToast("Job Saved!");
         }
 
         function renderJobs() {
-            const list = document.getElementById("jobList");
-            list.innerHTML = "";
-            const filtered = getFilteredJobs();
-            filtered.forEach(j => {
+            const pendingContainer = document.getElementById("pendingJobs");
+            const completedContainer = document.getElementById("completedJobs");
+
+            pendingContainer.innerHTML = `<div class="section-title">Pending Jobs</div>`;
+            completedContainer.innerHTML = `<div class="section-title">Completed Jobs</div>`;
+
+            const sorted = [...jobs].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            sorted.forEach(j => {
                 const realIndex = jobs.findIndex(job => job.id === j.id);
                 const statusClass = j.completed ? "status-done" : "status-pending";
                 const statusText = j.completed ? "✓ Done" : "Pending";
@@ -872,7 +856,7 @@
                         j.details.map(d => `<span class="detail-pill">${d.key}: ${d.value}</span>`).join("") + 
                         `</div>`;
                 }
-                list.innerHTML += `
+                const html = `
                     <div class="job-item ${j.completed ? 'completed' : ''}">
                         <div>
                             <b>${j.name}</b><br>
@@ -893,7 +877,16 @@
                         </div>
                     </div>
                 `;
+
+                if (j.completed) {
+                    completedContainer.innerHTML += html;
+                } else {
+                    pendingContainer.innerHTML += html;
+                }
             });
+
+            if (!pendingContainer.innerHTML.includes("job-item")) pendingContainer.innerHTML += `<p style="color:#666;text-align:center;padding:30px;">No pending jobs</p>`;
+            if (!completedContainer.innerHTML.includes("job-item")) completedContainer.innerHTML += `<p style="color:#666;text-align:center;padding:30px;">No completed jobs yet</p>`;
         }
 
         function toggleJobComplete(i) {
@@ -903,17 +896,29 @@
             updateAnalytics();
         }
 
-        function getFilteredJobs() {
-            const term = document.getElementById("jobSearch").value.toLowerCase().trim();
-            const sorted = [...jobs].sort((a,b) => new Date(b.date) - new Date(a.date));
-            return term ? sorted.filter(j => 
-                j.name.toLowerCase().includes(term) || 
-                j.material.toLowerCase().includes(term) ||
-                (j.details && j.details.some(d => d.key.toLowerCase().includes(term) || d.value.toLowerCase().includes(term)))
-            ) : sorted;
-        }
+        function filterJobsTab(filter) {
+            currentJobFilter = filter;
+            document.getElementById("filterAll").style.background = filter === 'all' ? 'var(--primary)' : '#333';
+            document.getElementById("filterAll").style.color = filter === 'all' ? '#000' : 'var(--primary)';
+            document.getElementById("filterPending").style.background = filter === 'pending' ? 'var(--primary)' : '#333';
+            document.getElementById("filterPending").style.color = filter === 'pending' ? '#000' : 'var(--primary)';
+            document.getElementById("filterCompleted").style.background = filter === 'completed' ? 'var(--primary)' : '#333';
+            document.getElementById("filterCompleted").style.color = filter === 'completed' ? '#000' : 'var(--primary)';
 
-        function filterJobs() { renderJobs(); }
+            const pendingContainer = document.getElementById("pendingJobs");
+            const completedContainer = document.getElementById("completedJobs");
+
+            if (filter === 'all') {
+                pendingContainer.style.display = 'block';
+                completedContainer.style.display = 'block';
+            } else if (filter === 'pending') {
+                pendingContainer.style.display = 'block';
+                completedContainer.style.display = 'none';
+            } else if (filter === 'completed') {
+                pendingContainer.style.display = 'none';
+                completedContainer.style.display = 'block';
+            }
+        }
 
         function resetCreateForm() {
             document.getElementById("printName").value = "";
@@ -926,6 +931,7 @@
             document.getElementById("detailsContainer").innerHTML = "";
             document.getElementById("priceBreakdown").style.display = "none";
             document.getElementById("editingBanner").style.display = "none";
+            document.getElementById("roundPriceToggle").checked = true;
             if (materials.length) document.getElementById("materialSelect").value = materials[0].name;
             updateMaterialPreview();
             document.getElementById("finalPrice").innerText = "$0.00";
@@ -958,7 +964,7 @@
                 j.details.forEach(d => addDetailRow(d.key, d.value));
             }
 
-            document.getElementById("editingBanner").innerHTML = `Editing Job: <strong>${j.name}</strong>`;
+            document.getElementById("editingBanner").innerHTML = `Editing: <strong>${j.name}</strong>`;
             document.getElementById("editingBanner").style.display = "block";
             document.getElementById("saveBtn").textContent = "Update Job";
         }
@@ -1047,9 +1053,14 @@
         function showTab(tab) {
             document.getElementById("homeTab").classList.toggle("hidden", tab !== "home");
             document.getElementById("createTab").classList.toggle("hidden", tab !== "create");
+            document.getElementById("jobsTab").classList.toggle("hidden", tab !== "jobs");
             document.getElementById("settingsTab").classList.toggle("hidden", tab !== "settings");
             document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
             if (tab === "create") resetCreateForm();
+            if (tab === "jobs") {
+                renderJobs();
+                filterJobsTab(currentJobFilter);
+            }
         }
 
         function openModal(id) { document.getElementById(id).style.display = "flex"; }
@@ -1073,4 +1084,10 @@
         document.getElementById("appTitleInput").value = appTitle;
         renderJobs();
         renderMaterials();
-        loadMaterialDropdown
+        loadMaterialDropdown();
+        updateAnalytics();
+        showTab("home");
+        loadTheme();
+    </script>
+</body>
+</html>
