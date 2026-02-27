@@ -20,7 +20,7 @@
         }
         body {
             margin: 0;
-           font-family: "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             background: var(--bg-dark);
             color: var(--text-light);
             line-height: 1.6;
@@ -117,97 +117,62 @@
         .green-btn:hover { transform: scale(1.05); }
         .delete-btn { background: var(--error); color: #fff; }
         .edit-btn { background: var(--warning); color: #000; }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 28px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #555;
-            transition: .4s;
-            border-radius: 28px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background: var(--success);
-        }
-        input:checked + .slider:before {
-            transform: translateX(24px);
+        .detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
         }
         .final-price {
-            font-size: 38px;
+            font-size: 42px;
             font-weight: 800;
             color: var(--primary);
             text-align: center;
+            margin: 20px 0 10px;
+        }
+        .price-breakdown {
+            background: #1f1f1f;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             margin: 15px 0;
-            transition: all 0.6s ease;
         }
         .job-item {
-            padding: 20px;
-            margin-bottom: 16px;
-            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 18px;
+            border-radius: 18px;
             background: #1a1a1a;
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
         }
         .job-item:hover {
             background: #252525;
             transform: scale(1.02);
         }
         .job-item.completed {
-            opacity: 0.85;
-            border-left: 6px solid var(--success);
+            border-left: 8px solid var(--success);
+            opacity: 0.92;
         }
         .status-badge {
             position: absolute;
-            top: 16px;
-            right: 16px;
-            padding: 6px 14px;
+            top: 18px;
+            right: 18px;
+            padding: 6px 16px;
             border-radius: 999px;
             font-size: 13px;
             font-weight: 700;
         }
-        .status-done {
-            background: rgba(34,255,136,0.2);
-            color: var(--success);
-        }
-        .status-pending {
-            background: rgba(255,85,85,0.2);
-            color: var(--error);
-        }
+        .status-done { background: rgba(34,255,136,0.2); color: var(--success); }
+        .status-pending { background: rgba(255,85,85,0.2); color: var(--error); }
         .job-details {
-            margin-top: 12px;
+            margin-top: 14px;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
         .detail-pill {
             background: #333;
-            color: #ddd;
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 999px;
             font-size: 13px;
         }
@@ -303,6 +268,15 @@
             z-index: 4000;
             display: none;
         }
+        .editing-banner {
+            background: #222;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--warning);
+            font-weight: 600;
+        }
         footer {
             text-align: center;
             padding: 30px 20px;
@@ -361,6 +335,7 @@
         <!-- CREATE JOB -->
         <div id="createTab" class="tab-content hidden">
             <div class="card">
+                <div id="editingBanner" class="editing-banner" style="display:none;"></div>
                 <h2 style="text-align:center;margin-bottom:20px;"><i class="fas fa-plus"></i>New Print Job</h2>
                 <div id="createJobForm">
                     <div class="form-row"><label>Job Name</label><input id="printName" placeholder="e.g. Custom Dragon" required></div>
@@ -391,8 +366,9 @@
                         <div id="detailsContainer"></div>
                     </div>
 
+                    <div id="priceBreakdown" class="price-breakdown" style="display:none;"></div>
                     <button class="btn" style="background:#444;color:#fff;width:100%;margin-top:20px;" onclick="calculatePrice()">Calculate Price</button>
-                    <button class="btn green-btn" onclick="createJob()" style="margin-top:10px;width:100%;">Save Job</button>
+                    <button id="saveBtn" class="btn green-btn" onclick="createJob()" style="margin-top:10px;width:100%;">Save Job</button>
                     <h3 style="margin-top:25px;text-align:center;">Estimated Price</h3>
                     <h1 id="finalPrice" class="final-price">$0.00</h1>
                 </div>
@@ -822,13 +798,26 @@
             const printerCost = parseFloat(document.getElementById("printerCost").value) || 0;
             const matName = document.getElementById("materialSelect").value;
             const mat = materials.find(m => m.name === matName);
+
+            const matCost = mat ? grams * mat.cost : 0;
+            const printerTimeCost = duration * printerCost;
+            const subtotal = matCost + printerTimeCost;
+            const final = subtotal * profit;
+
             const priceEl = document.getElementById("finalPrice");
-            if (!mat || duration <= 0 || grams <= 0) {
-                if (priceEl) priceEl.innerText = "$0.00";
-                return 0;
-            }
-            const final = (grams * mat.cost + duration * printerCost) * profit;
-            if (priceEl) priceEl.innerText = "$" + final.toFixed(2);
+            const breakdownEl = document.getElementById("priceBreakdown");
+
+            priceEl.innerText = "$" + final.toFixed(2);
+
+            breakdownEl.innerHTML = `
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Material Cost</span><span>$${matCost.toFixed(2)}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Printer Time</span><span>$${printerTimeCost.toFixed(2)}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Subtotal</span><span>$${subtotal.toFixed(2)}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>Profit (${profit}x)</span><span>$${(final - subtotal).toFixed(2)}</span></div>
+                <hr style="margin:10px 0;border-color:#444;">
+                <div style="display:flex;justify-content:space-between;font-weight:700;"><span>Total</span><span>$${final.toFixed(2)}</span></div>
+            `;
+            breakdownEl.style.display = "block";
             return final;
         }
 
@@ -844,18 +833,23 @@
             const material = document.getElementById("materialSelect").value;
             const details = getCurrentDetails();
             const revenue = calculatePrice();
+
             if (!name || !material || duration <= 0 || grams <= 0 || revenue <= 0) return alert("Please fill all fields correctly");
+
             const job = {
+                id: editingJobIndex >= 0 ? jobs[editingJobIndex].id : Date.now(),
                 name, duration, grams, printerCost, profitMultiplier, revenue,
                 date: new Date().toLocaleDateString(), material, details,
-                completed: false
+                completed: editingJobIndex >= 0 ? jobs[editingJobIndex].completed : false
             };
+
             if (editingJobIndex >= 0) {
                 jobs[editingJobIndex] = job;
                 editingJobIndex = -1;
             } else {
                 jobs.push(job);
             }
+
             if (storageAvailable) localStorage.setItem("jobs", JSON.stringify(jobs));
             resetCreateForm();
             renderJobs();
@@ -868,7 +862,8 @@
             const list = document.getElementById("jobList");
             list.innerHTML = "";
             const filtered = getFilteredJobs();
-            filtered.forEach((j, i) => {
+            filtered.forEach(j => {
+                const realIndex = jobs.findIndex(job => job.id === j.id);
                 const statusClass = j.completed ? "status-done" : "status-pending";
                 const statusText = j.completed ? "✓ Done" : "Pending";
                 let detailsHTML = "";
@@ -888,12 +883,12 @@
                         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
                             <div class="status-badge ${statusClass}">${statusText}</div>
                             <label class="toggle-switch">
-                                <input type="checkbox" ${j.completed ? 'checked' : ''} onchange="toggleJobComplete(${i})">
+                                <input type="checkbox" ${j.completed ? 'checked' : ''} onchange="toggleJobComplete(${realIndex})">
                                 <span class="slider"></span>
                             </label>
                             <div>
-                                <button class="btn edit-btn" onclick="editJob(${i})"><i class="fas fa-edit"></i></button>
-                                <button class="btn delete-btn" onclick="deleteJob(${i})"><i class="fas fa-trash"></i></button>
+                                <button class="btn edit-btn" onclick="editJob(${realIndex})"><i class="fas fa-edit"></i></button>
+                                <button class="btn delete-btn" onclick="deleteJob(${realIndex})"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                     </div>
@@ -929,9 +924,12 @@
             document.getElementById("printerCost").value = "2";
             document.getElementById("profitMultiplier").value = "1.5";
             document.getElementById("detailsContainer").innerHTML = "";
+            document.getElementById("priceBreakdown").style.display = "none";
+            document.getElementById("editingBanner").style.display = "none";
             if (materials.length) document.getElementById("materialSelect").value = materials[0].name;
             updateMaterialPreview();
             document.getElementById("finalPrice").innerText = "$0.00";
+            document.getElementById("saveBtn").textContent = "Save Job";
             editingJobIndex = -1;
         }
 
@@ -939,6 +937,7 @@
             editingJobIndex = i;
             const j = jobs[i];
             showTab("create");
+
             document.getElementById("printName").value = j.name;
             const hrs = Math.floor(j.duration);
             const min = Math.floor((j.duration - hrs) * 60);
@@ -958,6 +957,10 @@
             if (j.details && j.details.length) {
                 j.details.forEach(d => addDetailRow(d.key, d.value));
             }
+
+            document.getElementById("editingBanner").innerHTML = `Editing Job: <strong>${j.name}</strong>`;
+            document.getElementById("editingBanner").style.display = "block";
+            document.getElementById("saveBtn").textContent = "Update Job";
         }
 
         function deleteJob(i) {
@@ -1070,10 +1073,4 @@
         document.getElementById("appTitleInput").value = appTitle;
         renderJobs();
         renderMaterials();
-        loadMaterialDropdown();
-        updateAnalytics();
-        showTab("home");
-        loadTheme();
-    </script>
-</body>
-</html>
+        loadMaterialDropdown
