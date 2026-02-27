@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zac's Layered Creations</title>
+    <title>3D Print Manager Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -15,12 +15,12 @@
             --text-light: #eeeeee;
             --border: #444444;
             --error: #ff5555;
-            --success: #aaaaaa;
+            --success: #22ff88;
             --warning: #ffff88;
         }
         body {
             margin: 0;
-            font-family: "Comic Sans MS", "Comic Sans", cursive;
+           font-family: "Helvetica Neue", Arial, sans-serif;
             background: var(--bg-dark);
             color: var(--text-light);
             line-height: 1.6;
@@ -42,6 +42,7 @@
             color: var(--primary);
             font-size: 28px;
             letter-spacing: 1px;
+            transition: all 0.3s ease;
         }
         nav {
             display: flex;
@@ -70,21 +71,21 @@
         .tab-content.hidden { display: none; }
         .card {
             background: var(--bg-card);
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 25px;
+            padding: 26px;
+            border-radius: 18px;
+            margin-bottom: 28px;
             border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
             transition: all 0.4s ease;
         }
         .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(255,255,255,0.08);
+            transform: translateY(-10px);
+            box-shadow: 0 24px 50px rgba(255,255,255,0.09);
         }
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 22px;
+            gap: 24px;
         }
         input, select {
             width: 100%;
@@ -116,14 +117,44 @@
         .green-btn:hover { transform: scale(1.05); }
         .delete-btn { background: var(--error); color: #fff; }
         .edit-btn { background: var(--warning); color: #000; }
-        .detail-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            align-items: center;
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
         }
-        .detail-row input {
-            flex: 1;
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #555;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background: var(--success);
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
         }
         .final-price {
             font-size: 38px;
@@ -134,29 +165,51 @@
             transition: all 0.6s ease;
         }
         .job-item {
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-radius: 16px;
             background: #1a1a1a;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
         .job-item:hover {
             background: #252525;
             transform: scale(1.02);
         }
-        .job-details {
-            margin-top: 10px;
-            font-size: 13px;
+        .job-item.completed {
             opacity: 0.85;
+            border-left: 6px solid var(--success);
+        }
+        .status-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .status-done {
+            background: rgba(34,255,136,0.2);
+            color: var(--success);
+        }
+        .status-pending {
+            background: rgba(255,85,85,0.2);
+            color: var(--error);
+        }
+        .job-details {
+            margin-top: 12px;
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
         }
         .detail-pill {
             background: #333;
-            padding: 4px 10px;
+            color: #ddd;
+            padding: 5px 12px;
             border-radius: 999px;
-            font-size: 12px;
+            font-size: 13px;
         }
         .material-item {
             padding: 16px;
@@ -267,7 +320,7 @@
 </head>
 <body>
     <header>
-        <h1>3D Print Manager Pro</h1>
+        <h1 id="appTitle">3D Print Manager Pro</h1>
         <nav>
             <button data-tab="home" class="active" onclick="showTab('home')">Dashboard</button>
             <button data-tab="create" onclick="showTab('create')">Create Job</button>
@@ -330,10 +383,9 @@
                         <div id="materialPreview" style="width:100px;height:28px;border-radius:8px;margin-left:12px;border:2px solid var(--border);"></div>
                     </div>
 
-                    <!-- NEW CUSTOM DETAILS SECTION -->
                     <div style="margin-top:30px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                            <label style="font-weight:700;">Job Details <small style="opacity:0.7;">(Name, Info, etc.)</small></label>
+                            <label style="font-weight:700;">Job Details</label>
                             <button class="btn" style="background:#333;color:#fff;padding:8px 16px;" onclick="addDetailRow()">+ Add Detail</button>
                         </div>
                         <div id="detailsContainer"></div>
@@ -378,6 +430,15 @@
                 <div id="materialList"></div>
             </div>
 
+            <div class="card">
+                <h2><i class="fas fa-palette"></i>Theme &amp; App Settings</h2>
+                <div class="form-row">
+                    <label>App Title</label>
+                    <input id="appTitleInput" value="3D Print Manager Pro">
+                </div>
+                <button class="btn green-btn" onclick="saveAppTitle()" style="width:100%;margin-top:10px;">Save App Title</button>
+            </div>
+
             <div class="card theme-section">
                 <h2><i class="fas fa-palette"></i>Theme Customizer</h2>
                 <div class="theme-row"><label>Primary Color</label><input type="color" id="themePrimary" value="#eeeeee" onchange="updateTheme()"></div>
@@ -409,11 +470,14 @@
     <script>
         let jobs = [], materials = [], revenueChart, materialChart, editingJobIndex = -1, editingMaterialIndex = -1;
         let storageAvailable = true;
+        let appTitle = "3D Print Manager Pro";
 
         try {
             if (window.localStorage) {
                 jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
                 materials = JSON.parse(localStorage.getItem("materials") || "[]");
+                const savedTitle = localStorage.getItem("appTitle");
+                if (savedTitle) appTitle = savedTitle;
             }
         } catch (e) {
             storageAvailable = false;
@@ -466,6 +530,16 @@
             if (storageAvailable) localStorage.removeItem("theme");
         }
 
+        function saveAppTitle() {
+            const newTitle = document.getElementById("appTitleInput").value.trim();
+            if (newTitle) {
+                appTitle = newTitle;
+                document.getElementById("appTitle").textContent = newTitle;
+                if (storageAvailable) localStorage.setItem("appTitle", newTitle);
+                showToast("App Title Updated!");
+            }
+        }
+
         function deleteAllData() {
             if (confirm("DELETE EVERYTHING? This cannot be undone!")) {
                 jobs = []; materials = [];
@@ -473,6 +547,7 @@
                     localStorage.removeItem("jobs");
                     localStorage.removeItem("materials");
                     localStorage.removeItem("theme");
+                    localStorage.removeItem("appTitle");
                 }
                 renderJobs();
                 renderMaterials();
@@ -484,13 +559,14 @@
 
         function exportCSV() {
             if (!jobs.length) return alert("No jobs to export");
-            let csv = "Name,Date,Revenue,Grams,Duration (hours),Filament,Details\n";
+            let csv = "Name,Date,Revenue,Grams,Duration (hours),Filament,Status,Details\n";
             jobs.forEach(j => {
+                const status = j.completed ? "Done" : "Pending";
                 let detailStr = "";
                 if (j.details && j.details.length) {
                     detailStr = j.details.map(d => `${d.key}: ${d.value}`).join(" | ");
                 }
-                csv += `"${j.name}",${j.date},${j.revenue.toFixed(2)},${j.grams},${j.duration.toFixed(2)},${j.material},"${detailStr}"\n`;
+                csv += `"${j.name}",${j.date},${j.revenue.toFixed(2)},${j.grams},${j.duration.toFixed(2)},${j.material},${status},"${detailStr}"\n`;
             });
             const blob = new Blob([csv], {type: "text/csv"});
             const a = document.createElement("a");
@@ -704,9 +780,7 @@
             }
         }
 
-        // CUSTOM DETAILS FUNCTIONS
-        let currentDetails = [];
-
+        // CUSTOM DETAILS
         function addDetailRow(key = "", value = "") {
             const container = document.getElementById("detailsContainer");
             const id = "detail-" + Date.now();
@@ -715,7 +789,7 @@
             row.id = id;
             row.innerHTML = `
                 <input type="text" placeholder="Detail Name" value="${key}" style="flex:1.2;">
-                <input type="text" placeholder="(e.g. Name, Info)" value="${value}" style="flex:1;">
+                <input type="text" placeholder="Value" value="${value}" style="flex:1;">
                 <button class="btn delete-btn" style="padding:10px 14px;" onclick="removeDetailRow('${id}')">×</button>
             `;
             container.appendChild(row);
@@ -771,17 +845,23 @@
             const details = getCurrentDetails();
             const revenue = calculatePrice();
             if (!name || !material || duration <= 0 || grams <= 0 || revenue <= 0) return alert("Please fill all fields correctly");
-            const job = {name, duration, grams, printerCost, profitMultiplier, revenue, date: new Date().toLocaleDateString(), material, details};
+            const job = {
+                name, duration, grams, printerCost, profitMultiplier, revenue,
+                date: new Date().toLocaleDateString(), material, details,
+                completed: false
+            };
             if (editingJobIndex >= 0) {
                 jobs[editingJobIndex] = job;
                 editingJobIndex = -1;
-            } else jobs.push(job);
+            } else {
+                jobs.push(job);
+            }
             if (storageAvailable) localStorage.setItem("jobs", JSON.stringify(jobs));
             resetCreateForm();
             renderJobs();
             updateAnalytics();
             showTab("home");
-            showToast("Job Saved with details!");
+            showToast("Job Saved!");
         }
 
         function renderJobs() {
@@ -789,6 +869,8 @@
             list.innerHTML = "";
             const filtered = getFilteredJobs();
             filtered.forEach((j, i) => {
+                const statusClass = j.completed ? "status-done" : "status-pending";
+                const statusText = j.completed ? "✓ Done" : "Pending";
                 let detailsHTML = "";
                 if (j.details && j.details.length) {
                     detailsHTML = `<div class="job-details">` + 
@@ -796,20 +878,34 @@
                         `</div>`;
                 }
                 list.innerHTML += `
-                    <div class="job-item">
+                    <div class="job-item ${j.completed ? 'completed' : ''}">
                         <div>
                             <b>${j.name}</b><br>
                             $${j.revenue.toFixed(2)} • ${j.date}<br>
                             ${j.grams}g • ${j.duration.toFixed(1)}h • ${j.material}
                             ${detailsHTML}
                         </div>
-                        <div>
-                            <button class="btn edit-btn" onclick="editJob(${i})"><i class="fas fa-edit"></i></button>
-                            <button class="btn delete-btn" onclick="deleteJob(${i})"><i class="fas fa-trash"></i></button>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                            <div class="status-badge ${statusClass}">${statusText}</div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${j.completed ? 'checked' : ''} onchange="toggleJobComplete(${i})">
+                                <span class="slider"></span>
+                            </label>
+                            <div>
+                                <button class="btn edit-btn" onclick="editJob(${i})"><i class="fas fa-edit"></i></button>
+                                <button class="btn delete-btn" onclick="deleteJob(${i})"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     </div>
                 `;
             });
+        }
+
+        function toggleJobComplete(i) {
+            jobs[i].completed = !jobs[i].completed;
+            if (storageAvailable) localStorage.setItem("jobs", JSON.stringify(jobs));
+            renderJobs();
+            updateAnalytics();
         }
 
         function getFilteredJobs() {
@@ -857,7 +953,6 @@
             updateMaterialPreview();
             calculatePrice();
 
-            // Load existing details
             const container = document.getElementById("detailsContainer");
             container.innerHTML = "";
             if (j.details && j.details.length) {
@@ -971,6 +1066,8 @@
         });
 
         // INIT
+        document.getElementById("appTitle").textContent = appTitle;
+        document.getElementById("appTitleInput").value = appTitle;
         renderJobs();
         renderMaterials();
         loadMaterialDropdown();
