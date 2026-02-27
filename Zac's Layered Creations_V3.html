@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zac's Layered Creations</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #eeeeee;
+            --accent: #aaaaaa;
+            --bg-dark: #000000;
+            --bg-card: #111111;
+            --text-light: #eeeeee;
+            --border: #444444;
+            --error: #ff5555;
+            --success: #aaaaaa;
+            --warning: #ffff88;
+        }
+        body {
+            margin: 0;
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        header {
+            background: #111;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        }
+        header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+        nav {
+            display: flex;
+            gap: 8px;
+        }
+        nav button {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        nav button:hover, nav button.active {
+            background: var(--primary);
+            color: #000;
+            transform: scale(1.08);
+        }
+        .container {
+            padding: 20px;
+            max-width: 1280px;
+            margin: auto;
+        }
+        .tab-content { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tab-content.hidden { display: none; }
+        .card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s ease;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(255,255,255,0.08);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #1f1f1f;
+            color: var(--text-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+        }
+        .btn {
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+        .green-btn {
+            background: var(--primary);
+            color: #000;
+        }
+        .green-btn:hover { transform: scale(1.05); }
+        .delete-btn { background: var(--error); color: #fff; }
+        .edit-btn { background: var(--warning); color: #000; }
+        .detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .detail-row input {
+            flex: 1;
+        }
+        .final-price {
+            font-size: 38px;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            margin: 15px 0;
+            transition: all 0.6s ease;
+        }
+        .job-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            background: #1a1a1a;
+            transition: all 0.3s ease;
+        }
+        .job-item:hover {
+            background: #252525;
+            transform: scale(1.02);
+        }
+        .job-details {
+            margin-top: 10px;
+            font-size: 13px;
+            opacity: 0.85;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .detail-pill {
+            background: #333;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+        }
+        .material-item {
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .material-item:hover {
+            background: #252525;
+            transform: translateX(8px);
+        }
+        .gradient-bar {
+            height: 28px;
+            border-radius: 8px;
+            margin: 12px 0;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+        }
+        #materialLegend {
+            display: flex;
+            gap: 26px;
+            overflow-x: auto;
+            padding: 32px 20px;
+            scroll-behavior: smooth;
+            background: #1a1a1a;
+            border-radius: 24px;
+            margin-top: 32px;
+            box-shadow: inset 0 8px 32px rgba(0,0,0,0.7);
+        }
+        .legend-card {
+            min-width: 290px;
+            background: #222;
+            border-radius: 26px;
+            padding: 28px 22px;
+            text-align: center;
+            transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            box-shadow: 0 16px 45px rgba(0,0,0,0.8);
+        }
+        .legend-card:hover {
+            transform: scale(1.18) translateY(-14px);
+            box-shadow: 0 40px 80px rgba(255,255,255,0.22);
+        }
+        .legend-card .gradient-bar {
+            height: 128px;
+            width: 100%;
+            margin-bottom: 24px;
+            border-radius: 22px;
+            box-shadow: 0 14px 48px rgba(0,0,0,0.9);
+        }
+        .legend-card strong {
+            font-size: 23px;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .legend-card small {
+            font-size: 17px;
+            opacity: 0.95;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            width: 92%;
+            max-width: 420px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--success);
+            color: #000;
+            padding: 14px 28px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            font-weight: bold;
+            z-index: 4000;
+            display: none;
+        }
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #555;
+            font-size: 13px;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            nav button { padding: 9px 14px; font-size: 14px; }
+            .grid { grid-template-columns: 1fr; }
+            #materialLegend { gap: 20px; padding: 24px 14px; }
+            .legend-card { min-width: 240px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>3D Print Manager Pro</h1>
+        <nav>
+            <button data-tab="home" class="active" onclick="showTab('home')">Dashboard</button>
+            <button data-tab="create" onclick="showTab('create')">Create Job</button>
+            <button data-tab="settings" onclick="showTab('settings')">Settings</button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div id="notificationBanner" class="notification" style="display:none;">Local storage unavailable — data won't save after refresh.</div>
+
+        <!-- DASHBOARD -->
+        <div id="homeTab" class="tab-content">
+            <div class="grid">
+                <div class="card"><h3><i class="fas fa-dollar-sign"></i>Total Revenue</h3><h2 id="totalRevenue">$0</h2></div>
+                <div class="card"><h3><i class="fas fa-clock"></i>Total Hours</h3><h2 id="totalHours">0</h2></div>
+                <div class="card"><h3><i class="fas fa-weight-hanging"></i>Total Grams</h3><h2 id="totalGrams">0</h2></div>
+                <div class="card"><h3><i class="fas fa-calculator"></i>Avg Job Value</h3><h2 id="avgValue">$0</h2></div>
+                <div class="card"><h3><i class="fas fa-print"></i>Total Prints</h3><h2 id="totalPrints">0</h2></div>
+            </div>
+            <div class="grid">
+                <div class="card">
+                    <h3><i class="fas fa-chart-pie"></i>Filament Usage</h3>
+                    <canvas id="materialChart"></canvas>
+                    <div id="materialLegend"></div>
+                </div>
+                <div class="card"><h3><i class="fas fa-chart-line"></i>Revenue Over Time</h3><canvas id="revenueChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3><i class="fas fa-list"></i>Saved Jobs</h3>
+                    <button class="btn" style="background:#333;color:#fff;padding:8px 18px;font-size:14px;" onclick="exportCSV()">Export CSV</button>
+                </div>
+                <input id="jobSearch" placeholder="Search jobs..." oninput="filterJobs()" style="margin-bottom:12px;">
+                <div id="jobList"></div>
+            </div>
+        </div>
+
+        <!-- CREATE JOB -->
+        <div id="createTab" class="tab-content hidden">
+            <div class="card">
+                <h2 style="text-align:center;margin-bottom:20px;"><i class="fas fa-plus"></i>New Print Job</h2>
+                <div id="createJobForm">
+                    <div class="form-row"><label>Job Name</label><input id="printName" placeholder="e.g. Custom Dragon" required></div>
+                    <div class="form-row">
+                        <label>Print Time</label>
+                        <div class="time-inputs" style="display:flex;gap:8px;">
+                            <input type="number" id="hours" placeholder="H" min="0" required style="width:70px;">
+                            <span style="align-self:center;">:</span>
+                            <input type="number" id="minutes" placeholder="M" min="0" max="59" required style="width:70px;">
+                            <span style="align-self:center;">:</span>
+                            <input type="number" id="seconds" placeholder="S" min="0" max="59" required style="width:70px;">
+                        </div>
+                    </div>
+                    <div class="form-row"><label>Grams Used</label><input type="number" id="grams" placeholder="45.5" step="0.1" min="0.1" required></div>
+                    <div class="form-row"><label>Printer Cost/Hour</label><input type="number" id="printerCost" value="2" step="0.1" min="0" required></div>
+                    <div class="form-row"><label>Profit Multiplier</label><input type="number" id="profitMultiplier" value="1.5" step="0.1" min="1" required></div>
+                    <div class="form-row">
+                        <label>Filament</label>
+                        <select id="materialSelect" required></select>
+                        <div id="materialPreview" style="width:100px;height:28px;border-radius:8px;margin-left:12px;border:2px solid var(--border);"></div>
+                    </div>
+
+                    <!-- NEW CUSTOM DETAILS SECTION -->
+                    <div style="margin-top:30px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <label style="font-weight:700;">Job Details <small style="opacity:0.7;">(Name, Info, etc.)</small></label>
+                            <button class="btn" style="background:#333;color:#fff;padding:8px 16px;" onclick="addDetailRow()">+ Add Detail</button>
+                        </div>
+                        <div id="detailsContainer"></div>
+                    </div>
+
+                    <button class="btn" style="background:#444;color:#fff;width:100%;margin-top:20px;" onclick="calculatePrice()">Calculate Price</button>
+                    <button class="btn green-btn" onclick="createJob()" style="margin-top:10px;width:100%;">Save Job</button>
+                    <h3 style="margin-top:25px;text-align:center;">Estimated Price</h3>
+                    <h1 id="finalPrice" class="final-price">$0.00</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="settingsTab" class="tab-content hidden">
+            <div class="card">
+                <h2><i class="fas fa-edit"></i>Filament Editor</h2>
+                <div class="form-row"><label>Name</label><input id="materialName" placeholder="e.g. PLA White" required></div>
+                <div class="form-row"><label>Cost per Gram</label><input id="materialCost" type="number" placeholder="Cost per Gram" step="0.01" min="0.01" required></div>
+                
+                <div class="form-row">
+                    <label>Type</label>
+                    <select id="gradientSelect" onchange="toggleGradientMode()">
+                        <option value="solid">Solid Color</option>
+                        <option value="custom">Custom Gradient</option>
+                    </select>
+                </div>
+
+                <div id="solidSection">
+                    <div class="form-row"><label>Color</label><input type="color" id="solidColor" value="#eeeeee"></div>
+                </div>
+
+                <div id="customSection" style="display:none;">
+                    <h4 style="margin:15px 0 8px;">Gradient Stops</h4>
+                    <div id="colorStops"></div>
+                    <button class="btn" style="background:#333;color:#fff;width:100%;margin-top:10px;" onclick="addColorStop()">+ Add Color Stop</button>
+                    <div id="gradientPreview" class="gradient-bar" style="margin-top:15px;"></div>
+                </div>
+
+                <button class="btn green-btn" onclick="addMaterial()" style="width:100%;margin-top:20px;">Add Filament</button>
+                <h3 style="margin-top:30px;">Saved Filaments</h3>
+                <div id="materialList"></div>
+            </div>
+
+            <div class="card theme-section">
+                <h2><i class="fas fa-palette"></i>Theme Customizer</h2>
+                <div class="theme-row"><label>Primary Color</label><input type="color" id="themePrimary" value="#eeeeee" onchange="updateTheme()"></div>
+                <div class="theme-row"><label>Background</label><input type="color" id="themeBg" value="#000000" onchange="updateTheme()"></div>
+                <div class="theme-row"><label>Card Background</label><input type="color" id="themeCard" value="#111111" onchange="updateTheme()"></div>
+                <div class="theme-row"><label>Text Color</label><input type="color" id="themeText" value="#eeeeee" onchange="updateTheme()"></div>
+                <div class="theme-row"><label>Button Color</label><input type="color" id="themeButton" value="#eeeeee" onchange="updateTheme()"></div>
+                <div class="theme-row"><label>Accent</label><input type="color" id="themeAccent" value="#aaaaaa" onchange="updateTheme()"></div>
+                <button class="btn" style="background:#333;color:#fff;width:100%;margin-top:10px;" onclick="resetTheme()">Reset to Classic Black &amp; White</button>
+                <button class="btn" style="background:#ff5555;color:#fff;width:100%;margin-top:8px;" onclick="deleteAllData()">Delete ALL Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="editMaterialModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editMaterialModal')" style="float:right;font-size:28px;cursor:pointer;">×</span>
+            <h2>Edit Filament</h2>
+            <div id="editMaterialForm"></div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <footer>3D Print Manager Pro • All data saved locally • Press F5 for quick settings</footer>
+
+    <script>
+        let jobs = [], materials = [], revenueChart, materialChart, editingJobIndex = -1, editingMaterialIndex = -1;
+        let storageAvailable = true;
+
+        try {
+            if (window.localStorage) {
+                jobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+                materials = JSON.parse(localStorage.getItem("materials") || "[]");
+            }
+        } catch (e) {
+            storageAvailable = false;
+            document.getElementById("notificationBanner").style.display = "block";
+        }
+
+        function loadTheme() {
+            try {
+                const saved = localStorage.getItem("theme");
+                if (saved) {
+                    const t = JSON.parse(saved);
+                    Object.keys(t).forEach(k => document.documentElement.style.setProperty('--' + k, t[k]));
+                }
+            } catch (e) {}
+        }
+
+        function updateTheme() {
+            const primary = document.getElementById("themePrimary").value;
+            const bg = document.getElementById("themeBg").value;
+            const card = document.getElementById("themeCard").value;
+            const text = document.getElementById("themeText").value;
+            const button = document.getElementById("themeButton").value;
+            const accent = document.getElementById("themeAccent").value;
+
+            document.documentElement.style.setProperty("--primary", primary);
+            document.documentElement.style.setProperty("--bg-dark", bg);
+            document.documentElement.style.setProperty("--bg-card", card);
+            document.documentElement.style.setProperty("--text-light", text);
+            document.documentElement.style.setProperty("--accent", accent);
+
+            const style = document.createElement("style");
+            style.textContent = `.green-btn { background: ${button} !important; }`;
+            document.head.appendChild(style);
+
+            if (storageAvailable) localStorage.setItem("theme", JSON.stringify({primary, bg, card, text, button, accent}));
+        }
+
+        function resetTheme() {
+            document.documentElement.style.setProperty("--primary", "#eeeeee");
+            document.documentElement.style.setProperty("--bg-dark", "#000000");
+            document.documentElement.style.setProperty("--bg-card", "#111111");
+            document.documentElement.style.setProperty("--text-light", "#eeeeee");
+            document.documentElement.style.setProperty("--accent", "#aaaaaa");
+            document.getElementById("themePrimary").value = "#eeeeee";
+            document.getElementById("themeBg").value = "#000000";
+            document.getElementById("themeCard").value = "#111111";
+            document.getElementById("themeText").value = "#eeeeee";
+            document.getElementById("themeButton").value = "#eeeeee";
+            document.getElementById("themeAccent").value = "#aaaaaa";
+            if (storageAvailable) localStorage.removeItem("theme");
+        }
+
+        function deleteAllData() {
+            if (confirm("DELETE EVERYTHING? This cannot be undone!")) {
+                jobs = []; materials = [];
+                if (storageAvailable) {
+                    localStorage.removeItem("jobs");
+                    localStorage.removeItem("materials");
+                    localStorage.removeItem("theme");
+                }
+                renderJobs();
+                renderMaterials();
+                loadMaterialDropdown();
+                updateAnalytics();
+                showToast("All data wiped");
+            }
+        }
+
+        function exportCSV() {
+            if (!jobs.length) return alert("No jobs to export");
+            let csv = "Name,Date,Revenue,Grams,Duration (hours),Filament,Details\n";
+            jobs.forEach(j => {
+                let detailStr = "";
+                if (j.details && j.details.length) {
+                    detailStr = j.details.map(d => `${d.key}: ${d.value}`).join(" | ");
+                }
+                csv += `"${j.name}",${j.date},${j.revenue.toFixed(2)},${j.grams},${j.duration.toFixed(2)},${j.material},"${detailStr}"\n`;
+            });
+            const blob = new Blob([csv], {type: "text/csv"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "print_jobs.csv";
+            a.click();
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.textContent = msg;
+            toast.style.display = "block";
+            setTimeout(() => toast.style.display = "none", 2200);
+        }
+
+        function getMaterialStyle(m) {
+            if (!m.colors || m.colors.length === 0) return "#000";
+            return `linear-gradient(to right, ${m.colors.join(', ')})`;
+        }
+
+        function getMaterialPieColor(m) {
+            if (!m.colors || m.colors.length === 0) return "#eeeeee";
+            return m.colors[0];
+        }
+
+        function addMaterial() {
+            const name = document.getElementById("materialName").value.trim();
+            const cost = parseFloat(document.getElementById("materialCost").value);
+            const isCustom = document.getElementById("gradientSelect").value === "custom";
+            let colors = [];
+            if (isCustom) {
+                colors = Array.from(document.querySelectorAll("#colorStops input[type='color']")).map(inp => inp.value);
+            } else {
+                colors = [document.getElementById("solidColor").value];
+            }
+            if (!name || isNaN(cost) || cost <= 0 || colors.length === 0) return alert("Enter valid filament details");
+            materials.push({name, cost, colors});
+            if (storageAvailable) localStorage.setItem("materials", JSON.stringify(materials));
+            resetMaterialForm();
+            renderMaterials();
+            loadMaterialDropdown();
+            updateAnalytics();
+            showToast("Filament Added! ✅");
+        }
+
+        function renderMaterials() {
+            const list = document.getElementById("materialList");
+            list.innerHTML = "";
+            if (materials.length === 0) {
+                list.innerHTML = `<p style="color:#666;text-align:center;">No filaments yet</p>`;
+                return;
+            }
+            materials.forEach((m, i) => {
+                const style = getMaterialStyle(m);
+                list.innerHTML += `
+                    <div class="material-item">
+                        <div style="display:flex;align-items:center;">
+                            <div style="width:100px;height:28px;border-radius:8px;background:${style};margin-right:12px;border:2px solid var(--border);"></div>
+                            ${m.name} - $${m.cost.toFixed(2)}/g
+                        </div>
+                        <div>
+                            <button class="btn edit-btn" onclick="editMaterial(${i})"><i class="fas fa-edit"></i></button>
+                            <button class="btn delete-btn" onclick="deleteMaterial(${i})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function loadMaterialDropdown() {
+            const select = document.getElementById("materialSelect");
+            select.innerHTML = materials.map(m => `<option value="${m.name}">${m.name}</option>`).join("");
+            if (!materials.length) select.innerHTML = `<option value="">No filaments yet</option>`;
+            updateMaterialPreview();
+        }
+
+        function updateMaterialPreview() {
+            const select = document.getElementById("materialSelect");
+            const mat = materials.find(m => m.name === select.value);
+            const preview = document.getElementById("materialPreview");
+            preview.style.background = mat ? getMaterialStyle(mat) : "#000";
+        }
+
+        function resetMaterialForm() {
+            document.getElementById("materialName").value = "";
+            document.getElementById("materialCost").value = "";
+            document.getElementById("gradientSelect").value = "solid";
+            toggleGradientMode();
+            document.getElementById("colorStops").innerHTML = "";
+        }
+
+        function toggleGradientMode() {
+            const mode = document.getElementById("gradientSelect").value;
+            document.getElementById("solidSection").style.display = mode === "solid" ? "block" : "none";
+            document.getElementById("customSection").style.display = mode === "custom" ? "block" : "none";
+            if (mode === "custom" && document.getElementById("colorStops").children.length === 0) addColorStop();
+        }
+
+        function addColorStop(color = "#eeeeee") {
+            const container = document.getElementById("colorStops");
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.gap = "8px";
+            div.style.marginBottom = "8px";
+            div.innerHTML = `
+                <input type="color" value="${color}" style="width:60px;" onchange="updateGradientPreview()">
+                <button class="btn delete-btn" style="padding:6px 10px;" onclick="this.parentElement.remove(); updateGradientPreview()">×</button>
+            `;
+            container.appendChild(div);
+            updateGradientPreview();
+        }
+
+        function updateGradientPreview() {
+            const stops = Array.from(document.querySelectorAll("#colorStops input[type='color']")).map(inp => inp.value);
+            const preview = document.getElementById("gradientPreview");
+            preview.style.background = stops.length ? `linear-gradient(to right, ${stops.join(', ')})` : "#000";
+        }
+
+        function editMaterial(i) {
+            editingMaterialIndex = i;
+            const m = materials[i];
+            const isCustom = m.colors && m.colors.length > 1;
+            let html = `
+                <div class="form-row"><label>Name</label><input id="editMatName" value="${m.name}"></div>
+                <div class="form-row"><label>Cost</label><input id="editMatCost" type="number" value="${m.cost}" step="0.01"></div>
+                <div class="form-row">
+                    <label>Type</label>
+                    <select id="editGradientSelect" onchange="toggleEditGradientMode()">
+                        <option value="solid" ${!isCustom ? 'selected' : ''}>Solid Color</option>
+                        <option value="custom" ${isCustom ? 'selected' : ''}>Custom Gradient</option>
+                    </select>
+                </div>
+                <div id="editSolidSection" style="display:${!isCustom ? 'block' : 'none'}">
+                    <div class="form-row"><label>Color</label><input id="editSolidColor" type="color" value="${m.colors ? m.colors[0] : '#eeeeee'}"></div>
+                </div>
+                <div id="editCustomSection" style="display:${isCustom ? 'block' : 'none'}">
+                    <h4 style="margin:15px 0 8px;">Gradient Stops</h4>
+                    <div id="editColorStops"></div>
+                    <button class="btn" style="background:#333;color:#fff;width:100%;margin-top:10px;" onclick="addEditColorStop()">+ Add Color Stop</button>
+                </div>
+                <button class="btn green-btn" onclick="saveEditedMaterial()" style="width:100%;margin-top:20px;">Save Changes</button>
+            `;
+            document.getElementById("editMaterialForm").innerHTML = html;
+
+            if (isCustom && m.colors) {
+                const container = document.getElementById("editColorStops");
+                m.colors.forEach(c => {
+                    const div = document.createElement("div");
+                    div.style.display = "flex";
+                    div.style.gap = "8px";
+                    div.style.marginBottom = "8px";
+                    div.innerHTML = `
+                        <input type="color" value="${c}" style="width:60px;">
+                        <button class="btn delete-btn" style="padding:6px 10px;" onclick="this.parentElement.remove()">×</button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            openModal("editMaterialModal");
+        }
+
+        function toggleEditGradientMode() {
+            const mode = document.getElementById("editGradientSelect").value;
+            document.getElementById("editSolidSection").style.display = mode === "solid" ? "block" : "none";
+            document.getElementById("editCustomSection").style.display = mode === "custom" ? "block" : "none";
+        }
+
+        function addEditColorStop() {
+            const container = document.getElementById("editColorStops");
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.gap = "8px";
+            div.style.marginBottom = "8px";
+            div.innerHTML = `
+                <input type="color" value="#eeeeee" style="width:60px;">
+                <button class="btn delete-btn" style="padding:6px 10px;" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveEditedMaterial() {
+            const name = document.getElementById("editMatName").value.trim();
+            const cost = parseFloat(document.getElementById("editMatCost").value);
+            const isCustom = document.getElementById("editGradientSelect").value === "custom";
+            let colors = [];
+            if (isCustom) {
+                colors = Array.from(document.querySelectorAll("#editColorStops input[type='color']")).map(inp => inp.value);
+            } else {
+                colors = [document.getElementById("editSolidColor").value];
+            }
+            if (!name || isNaN(cost) || cost <= 0 || colors.length === 0) return alert("Invalid filament");
+            materials[editingMaterialIndex] = {name, cost, colors};
+            if (storageAvailable) localStorage.setItem("materials", JSON.stringify(materials));
+            closeModal("editMaterialModal");
+            renderMaterials();
+            loadMaterialDropdown();
+            updateAnalytics();
+            showToast("Filament Updated!");
+        }
+
+        function deleteMaterial(i) {
+            if (confirm("Delete this filament?")) {
+                materials.splice(i, 1);
+                if (storageAvailable) localStorage.setItem("materials", JSON.stringify(materials));
+                renderMaterials();
+                loadMaterialDropdown();
+                renderJobs();
+                updateAnalytics();
+                showToast("Filament Deleted");
+            }
+        }
+
+        // CUSTOM DETAILS FUNCTIONS
+        let currentDetails = [];
+
+        function addDetailRow(key = "", value = "") {
+            const container = document.getElementById("detailsContainer");
+            const id = "detail-" + Date.now();
+            const row = document.createElement("div");
+            row.className = "detail-row";
+            row.id = id;
+            row.innerHTML = `
+                <input type="text" placeholder="Detail Name" value="${key}" style="flex:1.2;">
+                <input type="text" placeholder="(e.g. Name, Info)" value="${value}" style="flex:1;">
+                <button class="btn delete-btn" style="padding:10px 14px;" onclick="removeDetailRow('${id}')">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeDetailRow(id) {
+            const row = document.getElementById(id);
+            if (row) row.remove();
+        }
+
+        function getCurrentDetails() {
+            const rows = document.querySelectorAll("#detailsContainer .detail-row");
+            const details = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll("input");
+                const key = inputs[0].value.trim();
+                const value = inputs[1].value.trim();
+                if (key && value) details.push({key, value});
+            });
+            return details;
+        }
+
+        function calculatePrice() {
+            const h = parseFloat(document.getElementById("hours").value) || 0;
+            const m = parseFloat(document.getElementById("minutes").value) || 0;
+            const s = parseFloat(document.getElementById("seconds").value) || 0;
+            const duration = h + m/60 + s/3600;
+            const grams = parseFloat(document.getElementById("grams").value) || 0;
+            const profit = parseFloat(document.getElementById("profitMultiplier").value) || 1;
+            const printerCost = parseFloat(document.getElementById("printerCost").value) || 0;
+            const matName = document.getElementById("materialSelect").value;
+            const mat = materials.find(m => m.name === matName);
+            const priceEl = document.getElementById("finalPrice");
+            if (!mat || duration <= 0 || grams <= 0) {
+                if (priceEl) priceEl.innerText = "$0.00";
+                return 0;
+            }
+            const final = (grams * mat.cost + duration * printerCost) * profit;
+            if (priceEl) priceEl.innerText = "$" + final.toFixed(2);
+            return final;
+        }
+
+        function createJob() {
+            const name = document.getElementById("printName").value.trim();
+            const h = parseFloat(document.getElementById("hours").value) || 0;
+            const m = parseFloat(document.getElementById("minutes").value) || 0;
+            const s = parseFloat(document.getElementById("seconds").value) || 0;
+            const duration = h + m/60 + s/3600;
+            const grams = parseFloat(document.getElementById("grams").value) || 0;
+            const printerCost = parseFloat(document.getElementById("printerCost").value) || 0;
+            const profitMultiplier = parseFloat(document.getElementById("profitMultiplier").value) || 1;
+            const material = document.getElementById("materialSelect").value;
+            const details = getCurrentDetails();
+            const revenue = calculatePrice();
+            if (!name || !material || duration <= 0 || grams <= 0 || revenue <= 0) return alert("Please fill all fields correctly");
+            const job = {name, duration, grams, printerCost, profitMultiplier, revenue, date: new Date().toLocaleDateString(), material, details};
+            if (editingJobIndex >= 0) {
+                jobs[editingJobIndex] = job;
+                editingJobIndex = -1;
+            } else jobs.push(job);
+            if (storageAvailable) localStorage.setItem("jobs", JSON.stringify(jobs));
+            resetCreateForm();
+            renderJobs();
+            updateAnalytics();
+            showTab("home");
+            showToast("Job Saved with details!");
+        }
+
+        function renderJobs() {
+            const list = document.getElementById("jobList");
+            list.innerHTML = "";
+            const filtered = getFilteredJobs();
+            filtered.forEach((j, i) => {
+                let detailsHTML = "";
+                if (j.details && j.details.length) {
+                    detailsHTML = `<div class="job-details">` + 
+                        j.details.map(d => `<span class="detail-pill">${d.key}: ${d.value}</span>`).join("") + 
+                        `</div>`;
+                }
+                list.innerHTML += `
+                    <div class="job-item">
+                        <div>
+                            <b>${j.name}</b><br>
+                            $${j.revenue.toFixed(2)} • ${j.date}<br>
+                            ${j.grams}g • ${j.duration.toFixed(1)}h • ${j.material}
+                            ${detailsHTML}
+                        </div>
+                        <div>
+                            <button class="btn edit-btn" onclick="editJob(${i})"><i class="fas fa-edit"></i></button>
+                            <button class="btn delete-btn" onclick="deleteJob(${i})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function getFilteredJobs() {
+            const term = document.getElementById("jobSearch").value.toLowerCase().trim();
+            const sorted = [...jobs].sort((a,b) => new Date(b.date) - new Date(a.date));
+            return term ? sorted.filter(j => 
+                j.name.toLowerCase().includes(term) || 
+                j.material.toLowerCase().includes(term) ||
+                (j.details && j.details.some(d => d.key.toLowerCase().includes(term) || d.value.toLowerCase().includes(term)))
+            ) : sorted;
+        }
+
+        function filterJobs() { renderJobs(); }
+
+        function resetCreateForm() {
+            document.getElementById("printName").value = "";
+            document.getElementById("hours").value = "";
+            document.getElementById("minutes").value = "";
+            document.getElementById("seconds").value = "";
+            document.getElementById("grams").value = "";
+            document.getElementById("printerCost").value = "2";
+            document.getElementById("profitMultiplier").value = "1.5";
+            document.getElementById("detailsContainer").innerHTML = "";
+            if (materials.length) document.getElementById("materialSelect").value = materials[0].name;
+            updateMaterialPreview();
+            document.getElementById("finalPrice").innerText = "$0.00";
+            editingJobIndex = -1;
+        }
+
+        function editJob(i) {
+            editingJobIndex = i;
+            const j = jobs[i];
+            showTab("create");
+            document.getElementById("printName").value = j.name;
+            const hrs = Math.floor(j.duration);
+            const min = Math.floor((j.duration - hrs) * 60);
+            const sec = Math.round(((j.duration - hrs) * 60 - min) * 60);
+            document.getElementById("hours").value = hrs;
+            document.getElementById("minutes").value = min;
+            document.getElementById("seconds").value = sec;
+            document.getElementById("grams").value = j.grams;
+            document.getElementById("printerCost").value = j.printerCost;
+            document.getElementById("profitMultiplier").value = j.profitMultiplier;
+            document.getElementById("materialSelect").value = j.material;
+            updateMaterialPreview();
+            calculatePrice();
+
+            // Load existing details
+            const container = document.getElementById("detailsContainer");
+            container.innerHTML = "";
+            if (j.details && j.details.length) {
+                j.details.forEach(d => addDetailRow(d.key, d.value));
+            }
+        }
+
+        function deleteJob(i) {
+            if (confirm("Delete this job?")) {
+                jobs.splice(i, 1);
+                if (storageAvailable) localStorage.setItem("jobs", JSON.stringify(jobs));
+                renderJobs();
+                updateAnalytics();
+                showToast("Job Deleted");
+            }
+        }
+
+        function updateAnalytics() {
+            const totalRev = jobs.reduce((a, b) => a + b.revenue, 0);
+            const totalHours = jobs.reduce((a, b) => a + b.duration, 0);
+            const totalGrams = jobs.reduce((a, b) => a + b.grams, 0);
+            const avg = jobs.length ? totalRev / jobs.length : 0;
+            const totalPrints = jobs.length;
+
+            document.getElementById("totalRevenue").innerText = "$" + totalRev.toFixed(2);
+            document.getElementById("totalHours").innerText = totalHours.toFixed(1);
+            document.getElementById("totalGrams").innerText = totalGrams.toFixed(1);
+            document.getElementById("avgValue").innerText = "$" + avg.toFixed(2);
+            document.getElementById("totalPrints").innerText = totalPrints;
+
+            const dates = [...new Set(jobs.map(j => j.date))].sort();
+            const data = dates.map(d => jobs.filter(j => j.date === d).reduce((a,b)=>a+b.revenue,0));
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(document.getElementById("revenueChart"), {
+                type: "line",
+                data: { labels: dates, datasets: [{ label: "Revenue", data: data, borderColor: "var(--primary)", backgroundColor: "rgba(255,255,255,0.1)", fill: true }] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+
+            const usage = materials.map(m => ({
+                name: m.name,
+                grams: jobs.filter(j => j.material === m.name).reduce((a,b)=>a+b.grams,0)
+            })).filter(u => u.grams > 0);
+
+            const matColors = usage.map(u => {
+                const mat = materials.find(m => m.name === u.name);
+                return getMaterialPieColor(mat);
+            });
+
+            if (materialChart) materialChart.destroy();
+            materialChart = new Chart(document.getElementById("materialChart"), {
+                type: "doughnut",
+                data: {
+                    labels: usage.map(u => u.name),
+                    datasets: [{ 
+                        data: usage.map(u => u.grams), 
+                        backgroundColor: matColors, 
+                        borderColor: "#111", 
+                        borderWidth: 14 
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    plugins: { legend: { display: false } },
+                    cutout: "68%"
+                }
+            });
+
+            let legendHTML = "";
+            if (usage.length === 0) {
+                legendHTML = `<p style="color:#666;text-align:center;padding:60px 0;font-size:19px;">Add print jobs to see full beautiful gradients here</p>`;
+            } else {
+                legendHTML = usage.map(u => {
+                    const mat = materials.find(m => m.name === u.name);
+                    const style = getMaterialStyle(mat);
+                    const percent = totalGrams > 0 ? ((u.grams / totalGrams) * 100).toFixed(1) : 0;
+                    return `
+                        <div class="legend-card">
+                            <div class="gradient-bar" style="background:${style};"></div>
+                            <strong>${u.name}</strong>
+                            <small>${u.grams}g • ${percent}%</small>
+                        </div>
+                    `;
+                }).join("");
+            }
+            document.getElementById("materialLegend").innerHTML = legendHTML;
+        }
+
+        function showTab(tab) {
+            document.getElementById("homeTab").classList.toggle("hidden", tab !== "home");
+            document.getElementById("createTab").classList.toggle("hidden", tab !== "create");
+            document.getElementById("settingsTab").classList.toggle("hidden", tab !== "settings");
+            document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+            if (tab === "create") resetCreateForm();
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = "flex"; }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+        // Event listeners
+        document.getElementById("materialSelect").addEventListener("change", () => { updateMaterialPreview(); calculatePrice(); });
+        ["hours","minutes","seconds","grams","printerCost","profitMultiplier"].forEach(id => {
+            document.getElementById(id).addEventListener("input", calculatePrice);
+        });
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "F5") {
+                e.preventDefault();
+                showTab("settings");
+            }
+        });
+
+        // INIT
+        renderJobs();
+        renderMaterials();
+        loadMaterialDropdown();
+        updateAnalytics();
+        showTab("home");
+        loadTheme();
+    </script>
+</body>
+</html>
